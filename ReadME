@@ -1,0 +1,3 @@
+A simple to-do list application built using React. This app allows users to add, edit, delete, and mark tasks as complete. The tasks are saved in the browser's 
+localStorage so they persist even after a page refresh. 
+The app also features the ability to toggle the visibility of completed tasks.
