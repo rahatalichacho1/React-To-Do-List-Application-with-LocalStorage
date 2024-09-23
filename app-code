@@ -1,0 +1,104 @@
+import { useEffect, useState } from 'react'; // Importing React's useEffect and useState hooks.
+import Navbar from './components/Navbar'; // Importing a Navbar component from another file.
+import { v4 as uuidv4 } from 'uuid'; // Importing the uuidv4 function to generate unique IDs.
+
+function App() {
+  const [todo, settodo] = useState(""); // Defining state for the current todo input.
+  const [todos, settodos] = useState([]); // Defining state for the list of todos.
+  const [showfinshed, setshowfinshed] = useState(true); // Defining state to control whether finished tasks are shown.
+
+  // useEffect is used to load saved todos from localStorage when the component first mounts.
+  useEffect(() => {
+    let todostring = localStorage.getItem("todos"); // Getting the "todos" from localStorage.
+    if (todostring) { // If there are todos saved in localStorage:
+      let todos = JSON.parse(todostring); // Parse the saved todos from a string into an array.
+      settodos(todos); // Set the todos in state.
+    }
+  }, []); // Empty dependency array means this effect runs only once after initial render.
+
+  // Function to save todos array to localStorage.
+  const savetols = () => {
+    localStorage.setItem("todos", JSON.stringify(todos)); // Saving todos as a JSON string in localStorage.
+  };
+
+  // Function to toggle the visibility of finished tasks.
+  const tooglefinsishd = (e) => {
+    setshowfinshed(!showfinshed); // Toggle the showfinshed state.
+  };
+
+  // Function to edit a specific todo by its ID.
+  const handeledit = (e, id) => {
+    let t = todos.find(i => i.id === id); // Find the todo with the matching ID.
+    settodo(t.todo); // Set the current todo input to the one being edited.
+    let newtodos = todos.filter(item => item.id !== id); // Remove the edited todo from the todos list.
+    settodos(newtodos); // Update the todos state.
+    savetols(); // Save the updated list to localStorage.
+  };
+
+  // Function to delete a specific todo by its ID.
+  const handeldelet = (e, id) => {
+    const newtodos = todos.filter(item => item.id !== id); // Filter out the todo to be deleted.
+    settodos(newtodos); // Update the todos state.
+    savetols(); // Save the updated list to localStorage.
+  };
+
+  // Function to add a new todo to the list.
+  const handeladd = () => {
+    if (todo.trim()) { // Only add if the input is not empty.
+      settodos([...todos, { id: uuidv4(), todo, iscomplete: false }]); // Add the new todo with a unique ID and set its completion to false.
+      settodo(""); // Clear the input field after adding.
+      savetols(); // Save the updated list to localStorage.
+    }
+  };
+
+  // Function to handle input change for the todo field.
+  const handelchange = (e) => {
+    settodo(e.target.value); // Update the todo state as the user types.
+  };
+
+  // Function to toggle the completion status of a todo.
+  const handelchechkbox = (e) => {
+    const id = e.target.name; // Get the ID of the todo from the checkbox name.
+    const newtodos = todos.map(item => {
+      if (item.id === id) { // If the ID matches:
+        return { ...item, iscomplete: !item.iscomplete }; // Toggle the iscomplete status.
+      }
+      return item; // Otherwise, return the todo unchanged.
+    });
+    settodos(newtodos); // Update the todos state with the modified todo.
+    savetols(); // Save the updated list to localStorage.
+  };
+
+  return (
+    <>
+      <Navbar /> {/* Rendering the Navbar component. */}
+      <div className='container mx-auto my-5 rounded-xl p-5 bg-cyan-950 min-h-[80vh]'>
+        <div className="addtodo my-5">
+          <h2 className='text-lg font-bold text-white'>Add Task</h2>
+          <input onChange={handelchange} value={todo} type="text" className='w-80' /> {/* Input field for the todo. */}
+          <button onClick={handeladd} className='bg-sky-700 text-white p-3 py-1 rounded-md m-6 hover:bg-cyan-950 font-bold'>Save</button> {/* Button to add the todo. */}
+        </div>
+        <div>
+          <input onChange={tooglefinsishd} type="checkbox" checked={showfinshed} /> {/* Checkbox to toggle showing finished tasks. */}
+          Show Finished
+          <h1 className='text-xl text-white font-bold'>Your Task</h1>
+          <div className="todos">
+            {todos.length === 0 && <div className='m-5 text-white font-bold'>No Task on Display</div>} {/* Message when there are no tasks. */}
+            {todos.filter(item => showfinshed || !item.iscomplete).map(item => (  // Filter to show tasks based on their completion status.
+              <div key={item.id} className="todo flex justify-between w-1/4">
+                <input name={item.id} onChange={handelchechkbox} type="checkbox" checked={item.iscomplete} /> {/* Checkbox to mark task as complete. */}
+                <div className={item.iscomplete ? "line-through text-white" : "text-white"}>{item.todo}</div> {/* Displaying the task with a line-through if complete. */}
+                <div className="buttons flex h-full ">
+                  <button onClick={(e) => handeledit(e, item.id)} className='bg-sky-700 text-white p-3 py-1 rounded-md m-2 hover:bg-cyan-950 font-bold'>Edit</button> {/* Edit button for the todo. */}
+                  <button onClick={(e) => handeldelet(e, item.id)} className='bg-sky-700 text-white p-3 py-1 rounded-md m-2 hover:bg-cyan-950 font-bold'>Delete</button> {/* Delete button for the todo. */}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export default App; // Exporting the App component.
